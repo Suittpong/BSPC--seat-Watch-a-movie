@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบจองที่นั่งภาพยนตร์</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(to bottom right, #2c3e50, #3498db);
+            color: #fff;
+            text-align: center;
+        }
+
+        h1 {
+            font-weight: 700;
+            margin: 20px 0;
+        }
+
+        .time-buttons button,
+        .seating-grid div,
+        #confirmSeats,
+        .form-section button {
+            background: #f39c12;
+            border: none;
+            padding: 15px 25px;
+            margin: 10px;
+            color: #fff;
+            border-radius: 25px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .time-buttons button:hover,
+        .seating-grid div:hover,
+        #confirmSeats:hover,
+        .form-section button:hover {
+            background: #e67e22;
+            transform: scale(1.1);
+        }
+
+        .screen {
+            background: #444;
+            margin: 20px auto;
+            width: 80%;
+            height: 30px;
+            border-radius: 5px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .seating-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 50px);
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .seating-grid div {
+            width: 50px;
+            height: 50px;
+            background: #ecf0f1;
+            border-radius: 5px;
+            line-height: 50px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: bold;
+            color: #000; /* ตัวอักษรในที่นั่งเป็นสีดำ */
+        }
+
+        .seating-grid div.selected {
+            background: #2ecc71;
+        }
+
+        .seating-grid div.occupied {
+            background: #e74c3c;
+            cursor: not-allowed;
+        }
+
+        .form-section {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            width: 50%;
+            margin: 50px auto;
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-section h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .form-section input,
+        .form-section select {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+            transition: 0.3s;
+        }
+
+        .form-section input:focus,
+        .form-section select:focus {
+            border-color: #3498db;
+            outline: none;
+            box-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
+        }
+
+        .form-section button {
+            width: 100%;
+            padding: 15px;
+            background-color: #3498db;
+            border: none;
+            border-radius: 25px;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .form-section button:hover {
+            background: #2980b9;
+            transform: scale(1.05);
+        }
+
+        .result {
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>ระบบจองที่นั่งภาพยนตร์</h1>
+    </header>
+
+    <!-- หน้าเลือกเวลา -->
+    <div id="time-selection" style="display: block;">
+        <h2>กรุณาเลือกเวลาที่ต้องการ</h2>
+        <div class="time-buttons">
+            <button data-time="8:00-11:00" onclick="selectTime('8:00-11:00')">ตอนเช้า 8:00-11:00</button>
+            <button data-time="13:00-15:00" onclick="selectTime('13:00-15:00')">ตอนบ่าย 13:00-15:00</button>
+        </div>
+    </div>
+
+    <!-- หน้าเลือกที่นั่ง -->
+    <div id="seat-selection" style="display: none;">
+        <h2>เลือกที่นั่ง</h2>
+        <div id="selectedTime"></div>
+        <div class="screen">จอภาพยนตร์</div>
+        <div class="seating-grid" id="seatingArea"></div>
+        <button id="confirmSeats">ยืนยันที่นั่ง</button>
+    </div>
+
+    <!-- หน้าแสดงข้อมูล -->
+    <div id="personal-info" style="display: none;">
+        <h2>กรอกข้อมูลส่วนตัว</h2>
+        <form id="userForm" class="form-section">
+            <input type="text" id="fullName" placeholder="ชื่อ-นามสกุล" required>
+            <input type="tel" id="phoneNumber" placeholder="เบอร์โทร" required>
+            <select id="department" required>
+                <option value="">เลือกแผนก</option>
+                <option value="สาขาการบัญชี">สาขาการบัญชี</option>
+                <option value="สาขาคอมพิวเตอร์ธุรกิจ">สาขาคอมพิวเตอร์ธุรกิจ</option>
+                <option value="สาขาโลจิสติกส์">สาขาโลจิสติกส์</option>
+                <option value="สาขาการโรงแรม">สาขาการโรงแรม</option>
+                <option value="สาขาช่างยนต์">สาขาช่างยนต์</option>
+                <option value="สาขาช่างกล">สาขาช่างกล</option>
+                <option value="สาขาช่างเชื่อมโลหะ">สาขาช่างเชื่อมโลหะ</option>
+                <option value="สาขาตัวถังและสี">สาขาตัวถังและสี</option>
+                <option value="สาขาช่างอิเล็กทรอนิกส์">สาขาช่างอิเล็กทรอนิกส์</option>
+                <option value="สาขาช่างไฟฟ้ากำลัง">สาขาช่างไฟฟ้ากำลัง</option>
+            </select>
+            <button type="submit">ยืนยันการจอง</button>
+        </form>
+    </div>
+
+    <script>
+        let selectedSeats = [];
+        let selectedTime = '';
+
+        // ฟังก์ชันเลือกเวลา
+        function selectTime(time) {
+            selectedTime = time;
+            document.getElementById('selectedTime').innerText = `เวลาที่เลือก: ${selectedTime}`;
+            document.getElementById('time-selection').style.display = 'none';
+            document.getElementById('seat-selection').style.display = 'block';
+            generateSeats();
+        }
+
+        // ฟังก์ชันสร้างที่นั่ง
+        function generateSeats() {
+            const seatingArea = document.getElementById('seatingArea');
+            const rowLabels = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
+            seatingArea.innerHTML = ''; // ล้างที่นั่งเก่า
+
+            rowLabels.forEach((row) => {
+                for (let col = 1; col <= 8; col++) {
+                    const seat = document.createElement('div');
+                    const seatLabel = `${row}${col}`;
+                    seat.textContent = seatLabel;
+
+                    // เพิ่มฟังก์ชันคลิกที่นั่งเพื่อเลือก
+                    seat.addEventListener('click', () => {
+                        if (!seat.classList.contains('occupied')) {
+                            seat.classList.toggle('selected');
+                            if (seat.classList.contains('selected')) {
+                                selectedSeats.push(seatLabel);
+                            } else {
+                                selectedSeats = selectedSeats.filter(s => s !== seatLabel);
+                            }
+                        }
+                    });
+
+                    seatingArea.appendChild(seat);
+                }
+            });
+        }
+
+        // เมื่อยืนยันที่นั่ง
+        document.getElementById('confirmSeats').addEventListener('click', () => {
+            if (selectedSeats.length > 0) {
+                document.getElementById('seat-selection').style.display = 'none';
+                document.getElementById('personal-info').style.display = 'block';
+            } else {
+                alert('กรุณาเลือกที่นั่ง');
+            }
+        });
+
+        // เมื่อกรอกข้อมูลส่วนตัว
+        document.getElementById('userForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const name = document.getElementById('fullName').value;
+            const phone = document.getElementById('phoneNumber').value;
+            const department = document.getElementById('department').value;
+
+            alert(`การจองสำเร็จ!\nเวลาที่เลือก: ${selectedTime}\nที่นั่งที่เลือก: ${selectedSeats.join(', ')}\nชื่อ: ${name}\nเบอร์โทร: ${phone}\nแผนก: ${department}`);
+        });
+    </script>
+</body>
+</html>
+
+
+
+
+
